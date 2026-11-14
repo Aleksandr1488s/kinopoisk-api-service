@@ -50,12 +50,12 @@ public class ReportService {
         xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
         xml.append("<films>\n");
         for (Film f : films) {
-            xml.append("  <film>\n");
-            xml.append("    <id>").append(f.getFilmId()).append("</id>\n");
-            xml.append("    <name>").append(f.getFilmName()).append("</name>\n");
-            xml.append("    <year>").append(f.getYear()).append("</year>\n");
-            xml.append("    <rating>").append(f.getRating()).append("</rating>\n");
-            xml.append("    <description>").append(f.getDescription() != null ? f.getDescription() : "").append("</description>\n");
+            xml.append("<film>\n");
+            xml.append("<id>").append(f.getFilmId()).append("</id>\n");
+            xml.append("<name>").append(f.getFilmName()).append("</name>\n");
+            xml.append("<year>").append(f.getYear()).append("</year>\n");
+            xml.append("<rating>").append(f.getRating()).append("</rating>\n");
+            xml.append("<description>").append(f.getDescription() != null ? f.getDescription() : "").append("</description>\n");
             xml.append("  </film>\n");
         }
         xml.append("</films>");
@@ -63,7 +63,7 @@ public class ReportService {
         sendEmail(toEmail, "Отчёт по фильмам (XML)", "films.xml", xml.toString().getBytes(StandardCharsets.UTF_8));
     }
 
-    // Вспомогательный метод для отправки
+
     private void sendEmail(String toEmail, String subject, String filename, byte[] attachment) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
