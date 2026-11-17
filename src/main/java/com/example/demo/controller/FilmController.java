@@ -2,37 +2,31 @@ package com.example.demo.controller;
 
 import com.example.demo.entity.Film;
 import com.example.demo.repository.FilmRepository;
-import com.example.demo.service.FilmSyncService;
+
 import com.example.demo.service.ReportService;
+import com.example.demo.specification.FilmSpecification;
 import jakarta.mail.MessagingException;
-import jakarta.persistence.criteria.Predicate;
+
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+
 
 @RestController
 @RequestMapping("/api/v2/films")
 public class FilmController {
 
-    private final FilmSyncService syncService;
+
     private final FilmRepository filmRepository;
     private final ReportService reportService;
 
-    public FilmController(FilmSyncService syncService, FilmRepository filmRepository, ReportService reportService) {
-        this.syncService = syncService;
+    public FilmController(FilmRepository filmRepository, ReportService reportService) {
         this.filmRepository = filmRepository;
         this.reportService = reportService;
     }
 
-    @PostMapping
-    public String sync(@RequestParam Map<String, String> params) {
-        syncService.syncFilms(params);
-        return "Синхронизация завершена";
-    }
+
 
     @GetMapping
     public Page<Film> search(
@@ -50,22 +44,7 @@ public class FilmController {
                 : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Specification<Film> spec = (root, query, cb) -> {
-            List<Predicate> predicates = new ArrayList<>();
-            if (filmName != null && !filmName.isBlank()) {
-                predicates.add(cb.like(cb.lower(root.get("filmName")), "%" + filmName.toLowerCase() + "%"));
-            }
-            if (year != null) {
-                predicates.add(cb.equal(root.get("year"), year));
-            }
-            if (ratingFrom != null) {
-                predicates.add(cb.greaterThanOrEqualTo(root.get("rating"), ratingFrom));
-            }
-            if (ratingTo != null) {
-                predicates.add(cb.lessThanOrEqualTo(root.get("rating"), ratingTo));
-            }
-            return cb.and(predicates.toArray(new Predicate[0]));
-        };
+        Specification<Film> spec = FilmSpecification.withFilters(filmName, year, ratingFrom, ratingTo);
 
         return filmRepository.findAll(spec, pageable);
     }
